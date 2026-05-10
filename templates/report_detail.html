@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block page_title %}Case Report #{{ report.id }}{% endblock %}
+{% block page_sub %}Generated at {{ report.created_at }}{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom: 20px;">
+    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+        <h2 class="card-title">Investigation Summary</h2>
+        <span class="badge {% if report.result == 'Success' %}badge-success{% else %}badge-error{% endif %}" style="font-size:14px; padding:6px 12px;">{{ report.result }} (Score: {{ report.score }}/100)</span>
+    </div>
+    <div class="card-body">
+        <p><strong>Scenario:</strong> {{ report.scenario_name }}</p>
+        <p><strong>Outcome:</strong> {{ report.summary }}</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Identified Evidence Logs</h2>
+    </div>
+    <div class="card-body">
+        {% if evidence %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Log ID</th>
+                        <th>Action</th>
+                        <th>Description</th>
+                        <th>Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ev in evidence %}
+                    <tr>
+                        <td>#{{ ev.id }}</td>
+                        <td><span class="badge badge-{{ ev.action_type | lower }}">{{ ev.action_type }}</span></td>
+                        <td>{{ ev.description }}</td>
+                        <td class="mono-time">{{ ev.logged_at }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p>No evidence was tagged by the investigator during this case.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div style="margin-top: 20px;">
+    <a href="{{ url_for('list_reports') }}" class="btn btn-secondary">Back to Reports Archive</a>
+</div>
+{% endblock %}

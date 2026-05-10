@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block page_title %}Case Reports{% endblock %}
+{% block page_sub %}Archive of generated forensic investigation reports{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Archived Reports</h2>
+    </div>
+    <div class="card-body">
+        {% if reports %}
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Report ID</th>
+                        <th>Scenario Name</th>
+                        <th>Generated At</th>
+                        <th>Result</th>
+                        <th>Score</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for report in reports %}
+                    <tr>
+                        <td>#{{ report.id }}</td>
+                        <td>{{ report.scenario_name }}</td>
+                        <td class="mono-time">{{ report.created_at }}</td>
+                        <td>
+                            {% if report.result == 'Success' %}
+                            <span class="badge badge-success">Success</span>
+                            {% else %}
+                            <span class="badge badge-error">Needs Improvement</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ report.score }}/100</td>
+                        <td>
+                            <a href="{{ url_for('view_report', report_id=report.id) }}" class="btn-sm btn-info" style="text-decoration:none;">View Report</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-msg">No case reports generated yet. Complete an investigation, tag evidence, and generate a report from the Timeline tab!</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

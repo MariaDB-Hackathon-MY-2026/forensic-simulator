@@ -1,0 +1,452 @@
+{% extends "base.html" %}
+{% block title %}Scenario Simulation{% endblock %}
+{% block page_title %}Scenario Simulation{% endblock %}
+{% block page_sub %}Trigger a simulated database incident and begin your forensic investigation{% endblock %}
+
+{% block content %}
+
+<!-- Simulation Mode Banner -->
+<div class="sim-banner">
+    <svg class="icon" style="width:16px;height:16px;flex-shrink:0;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+    <div>
+        <strong>Controlled Simulation Environment</strong> — All destructive actions are logged and backed up automatically.
+        No real data is permanently lost. You can always reset via the <strong>Reset Database</strong> button below.
+    </div>
+    {% if session.get('mode', 'guided') == 'guided' %}
+    <span class="mode-pill guided-pill">🎓 Guided Mode</span>
+    {% else %}
+    <span class="mode-pill challenge-pill">🔥 Challenge Mode</span>
+    {% endif %}
+</div>
+
+<!-- HOW IT WORKS: 3-step flow -->
+<div class="how-it-works">
+    <div class="step-flow">
+        <div class="step-item">
+            <div class="step-num">1</div>
+            <div class="step-text">
+                <strong>Pick a Case</strong>
+                <span>Select a scenario below and trigger the incident</span>
+            </div>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="step-item">
+            <div class="step-num">2</div>
+            <div class="step-text">
+                <strong>Investigate</strong>
+                <span>Go to <b>Forensic Logs</b> to find the suspicious activity</span>
+            </div>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="step-item">
+            <div class="step-num">3</div>
+            <div class="step-text">
+                <strong>Recover</strong>
+                <span>Go to <b>Recovery</b> and restore the tampered data</span>
+            </div>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="step-item">
+            <div class="step-num">4</div>
+            <div class="step-text">
+                <strong>Report</strong>
+                <span>Generate a <b>Case Report</b> from the Timeline tab</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Case Cards -->
+<div class="case-grid">
+
+    <!-- CASE 001 -->
+    <div class="case-card">
+        <div class="case-card-header case-red">
+            <div class="case-badge-row">
+                <span class="case-file-tag">CASE FILE #001</span>
+                <span class="case-type-tag type-delete">🗑 Deletion</span>
+            </div>
+            <h2 class="case-title">The Disgruntled Admin</h2>
+            <p class="case-subtitle">Unauthorized record deletion at midnight</p>
+        </div>
+
+        <div class="case-card-body">
+
+            <!-- Incident Briefing -->
+            <div class="incident-section">
+                <div class="section-label">📋 Incident Briefing</div>
+                <p class="incident-text">
+                    A recently terminated system administrator was seen remotely logging into the university portal at 
+                    <strong>2:00 AM</strong>. We believe they permanently deleted a student's profile out of spite. 
+                    Your job: identify which student was deleted, find the evidence, and restore their data.
+                </p>
+            </div>
+
+            {% if session.get('mode', 'guided') == 'guided' %}
+            <!-- Guided Steps -->
+            <div class="guided-steps">
+                <div class="guided-label">💡 Investigation Steps (Guided Mode)</div>
+                <ol class="guided-list">
+                    <li>Trigger the deletion using the form below</li>
+                    <li>Navigate to <strong>Forensic Logs</strong> and filter by <code>DELETE</code></li>
+                    <li>Find the log targeting the <code>students</code> table — click 🔖 to tag it as evidence</li>
+                    <li>Go to <strong>Recovery</strong> and restore the deleted student profile</li>
+                </ol>
+            </div>
+            {% endif %}
+
+            <!-- Divider -->
+            <div class="case-divider"></div>
+
+            <!-- Action -->
+            <div class="section-label">⚡ Trigger Incident</div>
+            <form method="POST" action="{{ url_for('delete_student') }}">
+                <div class="form-group">
+                    <label class="form-label">Select victim student profile to delete</label>
+                    <select name="student_id" id="student_id" class="form-control" required>
+                        <option value="">-- Choose a student --</option>
+                        {% for s in students %}
+                        <option value="{{ s.student_id }}">{{ s.student_id }} — {{ s.name }} ({{ s.course }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-danger" {% if not students %}disabled{% endif %}>
+                    <svg class="icon" style="width:15px;height:15px;" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                    Execute Deletion
+                </button>
+                {% if not students %}
+                <p class="form-warning">⚠ No students in database. Reset the database first.</p>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
+    <!-- CASE 002 -->
+    <div class="case-card">
+        <div class="case-card-header case-orange">
+            <div class="case-badge-row">
+                <span class="case-file-tag">CASE FILE #002</span>
+                <span class="case-type-tag type-tamper">✏ Tampering</span>
+            </div>
+            <h2 class="case-title">The Midnight Grade Hacker</h2>
+            <p class="case-subtitle">Unauthorized grade modification in academic records</p>
+        </div>
+
+        <div class="case-card-body">
+
+            <!-- Incident Briefing -->
+            <div class="incident-section">
+                <div class="section-label">📋 Incident Briefing</div>
+                <p class="incident-text">
+                    The university registrar flagged a suspicious anomaly in the academic record system. 
+                    A student's grade was <strong>secretly altered</strong> without going through proper approval channels. 
+                    Your job: identify the tampered record, tag the evidence, and revert the grade.
+                </p>
+            </div>
+
+            {% if session.get('mode', 'guided') == 'guided' %}
+            <!-- Guided Steps -->
+            <div class="guided-steps">
+                <div class="guided-label">💡 Investigation Steps (Guided Mode)</div>
+                <ol class="guided-list">
+                    <li>Trigger the tampering using the form below</li>
+                    <li>Navigate to <strong>Forensic Logs</strong> and filter by <code>UPDATE</code></li>
+                    <li>Find the log targeting the <code>records</code> table — click 🔖 to tag it as evidence</li>
+                    <li>Go to <strong>Recovery</strong> and restore the original grade</li>
+                </ol>
+            </div>
+            {% endif %}
+
+            <!-- Divider -->
+            <div class="case-divider"></div>
+
+            <!-- Action -->
+            <div class="section-label">⚡ Trigger Incident</div>
+            <form method="POST" action="{{ url_for('modify_record') }}">
+                <div class="form-group">
+                    <label class="form-label">Select record to tamper with</label>
+                    <select name="record_id" class="form-control" required>
+                        <option value="">-- Choose a record --</option>
+                        {% for r in records %}
+                        <option value="{{ r.id }}">{{ r.student_id }} | {{ r.subject }} | Current Grade: {{ r.grade }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Set new (tampered) grade</label>
+                    <select name="new_grade" class="form-control" required>
+                        <option value="">-- Select grade --</option>
+                        <option value="A+">A+</option>
+                        <option value="A">A</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B">B</option>
+                        <option value="C+">C+</option>
+                        <option value="C">C</option>
+                        <option value="F">F</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-warning" {% if not records %}disabled{% endif %}>
+                    <svg class="icon" style="width:15px;height:15px;" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4m0 4h.01"/></svg>
+                    Execute Tampering
+                </button>
+                {% if not records %}
+                <p class="form-warning">⚠ No records found. Reset the database first.</p>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<!-- Database State -->
+<div class="card" style="margin-top:28px;">
+    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+        <h2 class="card-title">
+            <svg class="icon" style="margin-right:8px;" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+            Live Database State
+        </h2>
+        <form method="POST" action="{{ url_for('reset_scenario') }}" style="margin:0">
+            <button type="submit" class="btn btn-secondary">
+                <svg class="icon" style="width:15px;height:15px;" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                Reset Database
+            </button>
+        </form>
+    </div>
+    <div class="card-body">
+        <h3 class="table-section-title">Students ({{ students | length }})</h3>
+        {% if students %}
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr><th>ID</th><th>Name</th><th>Course</th><th>Year</th><th>GPA</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    {% for s in students %}
+                    <tr>
+                        <td><code>{{ s.student_id }}</code></td>
+                        <td>{{ s.name }}</td>
+                        <td>{{ s.course }}</td>
+                        <td>{{ s.year }}</td>
+                        <td><span class="badge badge-gpa">{{ s.gpa }}</span></td>
+                        <td><span class="badge badge-access">{{ s.status }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-msg">No students found. Use Reset to restore.</div>
+        {% endif %}
+
+        <h3 class="table-section-title mt-4">Academic Records ({{ records | length }})</h3>
+        {% if records %}
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr><th>#</th><th>Student</th><th>Subject</th><th>Grade</th><th>Semester</th></tr>
+                </thead>
+                <tbody>
+                    {% for r in records %}
+                    <tr>
+                        <td>{{ r.id }}</td>
+                        <td><code>{{ r.student_id }}</code></td>
+                        <td>{{ r.subject }}</td>
+                        <td><span class="badge badge-grade">{{ r.grade }}</span></td>
+                        <td>{{ r.semester }} {{ r.academic_year }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-msg">No records found.</div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<style>
+/* ── Simulation Banner ─────────────────────────── */
+.sim-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: rgba(245,158,11,0.07);
+    border: 1px solid rgba(245,158,11,0.2);
+    border-left: 4px solid var(--orange);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 24px;
+    font-size: 13px;
+    color: #cbd5e1;
+}
+.mode-pill {
+    margin-left: auto;
+    white-space: nowrap;
+    font-size: 12px;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+.guided-pill { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.25); }
+.challenge-pill { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
+
+/* ── How It Works ──────────────────────────────── */
+.how-it-works {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 24px;
+    margin-bottom: 24px;
+}
+.step-flow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.step-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 140px;
+}
+.step-num {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--blue), #2563eb);
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.step-text {
+    display: flex; flex-direction: column; gap: 2px;
+}
+.step-text strong { font-size: 13px; color: var(--text); }
+.step-text span { font-size: 11px; color: var(--muted); }
+.step-arrow { color: var(--muted); font-size: 18px; flex-shrink: 0; }
+
+/* ── Case Cards ────────────────────────────────── */
+.case-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+.case-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+}
+.case-card-header {
+    padding: 20px 24px;
+    position: relative;
+}
+.case-red { background: linear-gradient(135deg, rgba(239,68,68,0.12), rgba(220,38,38,0.05)); border-bottom: 1px solid rgba(239,68,68,0.2); }
+.case-orange { background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(217,119,6,0.05)); border-bottom: 1px solid rgba(245,158,11,0.2); }
+
+.case-badge-row { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; }
+.case-file-tag {
+    font-size: 10px;
+    font-family: var(--mono);
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 1px;
+    background: rgba(255,255,255,0.05);
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+}
+.case-type-tag {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+.type-delete { background: rgba(239,68,68,0.15); color: #f87171; }
+.type-tamper { background: rgba(245,158,11,0.15); color: #fbbf24; }
+
+.case-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.case-red .case-title { color: #fca5a5; }
+.case-orange .case-title { color: #fcd34d; }
+.case-subtitle { font-size: 12px; color: var(--muted); }
+
+.case-card-body { padding: 20px 24px; }
+
+/* ── Incident Section ──────────────────────────── */
+.section-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+.incident-section { margin-bottom: 16px; }
+.incident-text {
+    font-size: 13px;
+    color: #94a3b8;
+    line-height: 1.7;
+}
+
+/* ── Guided Steps ──────────────────────────────── */
+.guided-steps {
+    background: rgba(59,130,246,0.06);
+    border: 1px solid rgba(59,130,246,0.18);
+    border-left: 3px solid var(--blue);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+}
+.guided-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #60a5fa;
+    margin-bottom: 8px;
+}
+.guided-list {
+    padding-left: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.guided-list li {
+    font-size: 13px;
+    color: #94a3b8;
+    line-height: 1.5;
+}
+.guided-list li code {
+    background: rgba(255,255,255,0.07);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 11px;
+    color: #7dd3fc;
+}
+
+/* ── Divider ───────────────────────────────────── */
+.case-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 16px 0;
+}
+
+.form-warning {
+    font-size: 12px;
+    color: var(--orange);
+    margin-top: 8px;
+}
+
+@media (max-width: 700px) {
+    .case-grid { grid-template-columns: 1fr; }
+    .step-flow { flex-direction: column; }
+    .step-arrow { transform: rotate(90deg); }
+}
+</style>
+{% endblock %}

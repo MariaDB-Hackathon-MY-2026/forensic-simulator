@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% block title %}Data Comparison{% endblock %}
+{% block page_title %}Data Comparison{% endblock %}
+{% block page_sub %}Compare original, compromised, and recovered database states{% endblock %}
+
+{% block content %}
+<div class="alert-box alert-info">
+    <svg class="icon" style="margin-right:8px;" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg> <strong>Forensic Analysis:</strong> Rows highlighted in <span style="color:#ef4444">red</span> are missing from
+    current state. Rows in <span style="color:#f59e0b">yellow</span> have been modified.
+</div>
+
+<!-- Students Comparison -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title"><svg class="icon" style="margin-right:8px;" viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg> Students — Original vs Current</h2>
+        <div class="compare-legend">
+            <span class="legend-item legend-missing">Missing</span>
+            <span class="legend-item legend-modified">Modified</span>
+            <span class="legend-item legend-ok">OK</span>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-wrap">
+            <table class="data-table" id="compareStudents">
+                <thead>
+                    <tr>
+                        <th>Student ID</th>
+                        <th>Name</th>
+                        <th>Course</th>
+                        <th>Year</th>
+                        <th>GPA (Original)</th>
+                        <th>GPA (Current)</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for orig in original_students %}
+                    {% set curr = current_students | selectattr('student_id', 'equalto', orig.student_id) | list %}
+                    {% if curr %}
+                    {% set c = curr[0] %}
+                    {% if c.gpa | string != orig.gpa | string %}
+                    <tr class="row-modified">
+                        {% else %}
+                    <tr>
+                        {% endif %}
+                        <td><code>{{ orig.student_id }}</code></td>
+                        <td>{{ orig.name }}</td>
+                        <td>{{ orig.course }}</td>
+                        <td>{{ orig.year }}</td>
+                        <td>{{ orig.gpa }}</td>
+                        <td>
+                            {% if c.gpa | string != orig.gpa | string %}
+                            <span class="diff-mark">{{ c.gpa }} <svg class="icon" style="width:12px;height:12px;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg></span>
+                            {% else %}
+                            {{ c.gpa }}
+                            {% endif %}
+                        </td>
+                        <td><span class="badge badge-access">Present</span></td>
+                    </tr>
+                    {% else %}
+                    <tr class="row-missing">
+                        <td><code>{{ orig.student_id }}</code></td>
+                        <td>{{ orig.name }}</td>
+                        <td>{{ orig.course }}</td>
+                        <td>{{ orig.year }}</td>
+                        <td>{{ orig.gpa }}</td>
+                        <td>—</td>
+                        <td><span class="badge badge-delete">DELETED</span></td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                    {% if not original_students %}
+                    <tr>
+                        <td colspan="7" class="empty-msg">No backup snapshot available.</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Records Comparison -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h2 class="card-title"><svg class="icon" style="margin-right:8px;" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg> Academic Records — Original vs Current</h2>
+    </div>
+    <div class="card-body">
+        <div class="table-wrap">
+            <table class="data-table" id="compareRecords">
+                <thead>
+                    <tr>
+                        <th>Student ID</th>
+                        <th>Subject</th>
+                        <th>Original Grade</th>
+                        <th>Current Grade</th>
+                        <th>Semester</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for orig in original_records %}
+                    {% set curr = current_records | selectattr('student_id', 'equalto', orig.student_id) |
+                    selectattr('subject', 'equalto', orig.subject) | list %}
+                    {% if curr %}
+                    {% set c = curr[0] %}
+                    {% if c.grade != orig.grade %}
+                    <tr class="row-modified">
+                        {% else %}
+                    <tr>
+                        {% endif %}
+                        <td><code>{{ orig.student_id }}</code></td>
+                        <td>{{ orig.subject }}</td>
+                        <td><span class="badge badge-grade">{{ orig.grade }}</span></td>
+                        <td>
+                            {% if c.grade != orig.grade %}
+                            <span class="badge badge-warning">{{ c.grade }} <svg class="icon" style="width:12px;height:12px;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg></span>
+                            {% else %}
+                            <span class="badge badge-grade">{{ c.grade }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ orig.semester }}</td>
+                        <td><span class="badge badge-access">Present</span></td>
+                    </tr>
+                    {% else %}
+                    <tr class="row-missing">
+                        <td><code>{{ orig.student_id }}</code></td>
+                        <td>{{ orig.subject }}</td>
+                        <td><span class="badge badge-grade">{{ orig.grade }}</span></td>
+                        <td>—</td>
+                        <td>{{ orig.semester }}</td>
+                        <td><span class="badge badge-delete">DELETED</span></td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                    {% if not original_records %}
+                    <tr>
+                        <td colspan="6" class="empty-msg">No backup snapshot available.</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Summary -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h2 class="card-title"><svg class="icon" style="margin-right:8px;" viewBox="0 0 24 24"><path d="M7 16V4M7 4L3 8M7 4L11 8M17 8V20M17 20L21 16M17 20L13 16"/></svg> Comparison Summary</h2>
+    </div>
+    <div class="card-body">
+        <div class="stats-grid">
+            <div class="stat-card stat-blue">
+                <div class="stat-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg></div>
+                <div class="stat-info">
+                    <div class="stat-value">{{ original_students | length }}</div>
+                    <div class="stat-label">Original Students</div>
+                </div>
+            </div>
+            <div class="stat-card stat-green">
+                <div class="stat-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+                <div class="stat-info">
+                    <div class="stat-value">{{ current_students | length }}</div>
+                    <div class="stat-label">Current Students</div>
+                </div>
+            </div>
+            <div class="stat-card stat-orange">
+                <div class="stat-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></div>
+                <div class="stat-info">
+                    <div class="stat-value">{{ original_records | length }}</div>
+                    <div class="stat-label">Original Records</div>
+                </div>
+            </div>
+            <div class="stat-card stat-purple">
+                <div class="stat-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg></div>
+                <div class="stat-info">
+                    <div class="stat-value">{{ current_records | length }}</div>
+                    <div class="stat-label">Current Records</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
