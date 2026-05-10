@@ -1,4 +1,4 @@
-# Digital Forensic Student Data Recovery Simulator - Fathsic-University Poly-Tech Malaysia
+# Fathsic-Digital Forensic Student Data Recovery Simulator-University Poly-Tech Malaysia
 
 A web-based educational tool designed to simulate the digital forensic data recovery process. This platform helps students learn how to recover deleted files, analyze raw data, and generate professional forensic reports.
 
