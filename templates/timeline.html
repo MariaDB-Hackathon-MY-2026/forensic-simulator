@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block page_title %}Forensic Timeline{% endblock %}
+{% block page_sub %}Chronological visualization of system events{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+        <h2 class="card-title">Event Timeline</h2>
+        <form action="{{ url_for('generate_report') }}" method="POST">
+            <button type="submit" class="btn btn-primary" style="border-radius:20px;">
+                <svg class="icon" style="width:16px;height:16px;margin-right:6px;vertical-align:text-bottom" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" fill="none" stroke="currentColor" stroke-width="2"/></svg> Generate Case Report
+            </button>
+        </form>
+    </div>
+    <div class="card-body">
+        {% if events %}
+        <div class="timeline">
+            {% for event in events %}
+            <div class="timeline-item">
+                <div class="timeline-dot dot-{{ event.action_type | lower }}"></div>
+                <div class="timeline-content">
+                    <div class="timeline-header">
+                        <span class="timeline-time">{{ event.logged_at }}</span>
+                        <span class="badge badge-{{ event.action_type | lower }}">{{ event.action_type }}</span>
+                    </div>
+                    <div class="timeline-body">
+                        <p>{{ event.description }}</p>
+                        {% if event.target_table %}
+                        <small>Target: <code>{{ event.target_table }}</code> (ID: {{ event.target_id or 'N/A' }})</small>
+                        {% endif %}
+                        <small style="display:block; margin-top:4px; color:#888;">User: {{ event.performed_by }}</small>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-msg">No events recorded in the timeline yet.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ForenSim{% endblock %} — Digital Forensic Simulator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<!-- Sidebar -->
+<nav class="sidebar">
+    <div class="sidebar-brand">
+        <div class="brand-icon">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </div>
+        <div class="brand-text">
+            <span class="brand-name">ForenSim</span>
+            <span class="brand-sub">Forensic Simulator</span>
+        </div>
+    </div>
+
+    <ul class="nav-links">
+        <li><a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+            <span class="nav-icon"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg></span> Dashboard
+        </a></li>
+        <li><a href="{{ url_for('scenario') }}" class="nav-link {% if request.endpoint == 'scenario' %}active{% endif %}">
+            <span class="nav-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></span> Scenario
+        </a></li>
+        <li><a href="{{ url_for('logs') }}" class="nav-link {% if request.endpoint == 'logs' %}active{% endif %}">
+            <span class="nav-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg></span> Forensic Logs
+        </a></li>
+        <li><a href="{{ url_for('recovery') }}" class="nav-link {% if request.endpoint == 'recovery' %}active{% endif %}">
+            <span class="nav-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.77 3.77z"/></svg></span> Recovery
+        </a></li>
+        <li><a href="{{ url_for('compare') }}" class="nav-link {% if request.endpoint == 'compare' %}active{% endif %}">
+            <span class="nav-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M7 16V4M7 4L3 8M7 4L11 8M17 8V20M17 20L21 16M17 20L13 16"/></svg></span> Compare
+        </a></li>
+        <li><a href="{{ url_for('timeline') }}" class="nav-link {% if request.endpoint == 'timeline' %}active{% endif %}">
+            <span class="nav-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></span> Timeline
+        </a></li>
+        <li><a href="{{ url_for('list_reports') }}" class="nav-link {% if request.endpoint == 'list_reports' or request.endpoint == 'view_report' %}active{% endif %}">
+            <span class="nav-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></span> Reports
+        </a></li>
+    </ul>
+
+    <div class="sidebar-footer">
+        <div class="status-dot"></div>
+        <span>MariaDB Connected</span>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="main-wrapper">
+    <header class="topbar">
+        <div>
+            <h1 class="page-title">{% block page_title %}Dashboard{% endblock %}</h1>
+            <p class="page-sub">{% block page_sub %}{% endblock %}</p>
+        </div>
+        <div class="topbar-right">
+            <!-- Mode Toggle -->
+            <a href="{{ url_for('landing') }}" class="btn btn-secondary" style="padding: 4px 12px; font-size: 12px; border-radius: 20px; text-decoration:none; display:inline-flex; align-items:center; margin-right:15px;">
+                {% if session.get('mode', 'guided') == 'guided' %}
+                    <svg class="icon" style="width:12px;height:12px;margin-right:4px;" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> Guided Mode
+                {% else %}
+                    <svg class="icon" style="width:12px;height:12px;margin-right:4px;" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Challenge Mode
+                {% endif %}
+            </a>
+
+            <span class="badge badge-info" style="font-size: 13px; margin-right: 12px; border-radius: 6px; background-color: var(--blue); color: #fff;">
+                <svg class="icon" style="width:14px;height:14px;margin-right:4px;vertical-align:text-bottom" viewBox="0 0 24 24"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>
+                Rank: {{ user_rank }}
+            </span>
+            <span class="badge badge-warning" style="font-size: 13px; margin-right: 12px; border-radius: 6px;">
+                <svg class="icon" style="width:14px;height:14px;margin-right:4px;vertical-align:text-bottom" viewBox="0 0 24 24"><path d="M12 15l-2 5l9-9l-9-9l2 5l-9 9z" stroke="none" fill="currentColor"/><circle cx="12" cy="12" r="10"/></svg>
+                Score: {{ session.get('score', 100) }}
+            </span>
+            <span class="badge badge-sim">
+                <svg class="icon" style="width:12px;height:12px;margin-right:4px;" viewBox="0 0 24 24"><path d="M4.5 3h15M6 3v16a2 2 0 002 2h8a2 2 0 002-2V3M6 14h12"/></svg> Simulation Mode
+            </span>
+            <span class="clock" id="clock"></span>
+        </div>
+    </header>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-container">
+                {% for category, message in messages %}
+                    <div class="flash flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <main class="content">
+        {% block content %}{% endblock %}
+    </main>
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

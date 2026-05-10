@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Data Recovery{% endblock %}
+{% block page_title %}Data Recovery{% endblock %}
+{% block page_sub %}Restore deleted or modified records from backup snapshots{% endblock %}
+
+{% block content %}
+<div class="alert-box alert-info">
+    <svg class="icon" style="margin-right:8px;" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> <strong>Investigator Tool:</strong> Browse available backup snapshots and restore records to the active
+    database.
+</div>
+
+<div class="two-col-grid">
+    <!-- Available Backups -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title"><svg class="icon" style="margin-right:8px;" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg> Available Backup Snapshots</h2>
+        </div>
+        <div class="card-body">
+            {% if backups %}
+            <div class="backup-list">
+                {% for b in backups %}
+                <div class="backup-item">
+                    <div class="backup-info">
+                        <span class="backup-table-badge">{{ b.original_table }}</span>
+                        <span class="backup-label">{{ b.label or 'Record #' ~ b.original_id }}</span>
+                        <span class="backup-time">{{ b.backed_up_at }}</span>
+                    </div>
+                    <form method="POST" action="{{ url_for('restore_record') }}" style="margin:0">
+                        <input type="hidden" name="backup_id" value="{{ b.id }}">
+                        <button type="submit" class="btn-sm btn-success"><svg class="icon" style="width:14px;height:14px;margin-right:4px;" viewBox="0 0 24 24"><path d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg> Restore</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-msg">No backup snapshots available. Run a simulation scenario first.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Recovery History -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title"><svg class="icon" style="margin-right:8px;" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Recovery History</h2>
+        </div>
+        <div class="card-body">
+            {% if recovery_history %}
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Table</th>
+                            <th>Record ID</th>
+                            <th>Recovered At</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in recovery_history %}
+                        <tr>
+                            <td>{{ r.id }}</td>
+                            <td><code>{{ r.recovered_table }}</code></td>
+                            <td>{{ r.recovered_id }}</td>
+                            <td class="mono-time">{{ r.recovered_at }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-msg">No recoveries performed yet.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Recovered Data Preview -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h2 class="card-title"><svg class="icon" style="margin-right:8px;" viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg> How Recovery Works</h2>
+    </div>
+    <div class="card-body">
+        <div class="steps-grid">
+            <div class="step-item">
+                <div class="step-num">1</div>
+                <div class="step-text">
+                    <strong>Incident Triggered</strong>
+                    <p>A simulation deletes or modifies data in the active database.</p>
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num">2</div>
+                <div class="step-text">
+                    <strong>Backup Snapshot Saved</strong>
+                    <p>Before destruction, the record is saved to <code>backup_records</code>.</p>
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num">3</div>
+                <div class="step-text">
+                    <strong>Investigator Finds Evidence</strong>
+                    <p>The forensic logs reveal what was deleted or changed.</p>
+                </div>
+            </div>
+            <div class="step-item">
+                <div class="step-num">4</div>
+                <div class="step-text">
+                    <strong>Data Restored</strong>
+                    <p>The investigator clicks <em>Restore</em> to recover the lost record.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block title %}Forensic Logs{% endblock %}
+{% block page_title %}Forensic Logs{% endblock %}
+{% block page_sub %}Investigate all recorded database activities and suspicious events{% endblock %}
+
+{% block content %}
+<!-- Filter Bar -->
+<div class="card mb-4">
+    <div class="card-body filter-bar">
+        <span class="filter-label"><svg class="icon" style="margin-right:4px;" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg> Filter by Action:</span>
+        <div class="filter-btns">
+            <a href="{{ url_for('logs') }}" class="filter-btn {% if not action_filter %}active{% endif %}">All</a>
+            <a href="{{ url_for('logs', action='DELETE') }}"
+                class="filter-btn filter-delete {% if action_filter == 'DELETE' %}active{% endif %}">DELETE</a>
+            <a href="{{ url_for('logs', action='UPDATE') }}"
+                class="filter-btn filter-update {% if action_filter == 'UPDATE' %}active{% endif %}">UPDATE</a>
+            <a href="{{ url_for('logs', action='INSERT') }}"
+                class="filter-btn filter-insert {% if action_filter == 'INSERT' %}active{% endif %}">INSERT</a>
+            <a href="{{ url_for('logs', action='ACCESS') }}"
+                class="filter-btn filter-access {% if action_filter == 'ACCESS' %}active{% endif %}">ACCESS</a>
+        </div>
+        <span class="log-count">{{ logs | length }} entries</span>
+    </div>
+</div>
+
+<!-- Logs Table -->
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title"><svg class="icon" style="margin-right:8px;" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg> Activity Log Entries</h2>
+    </div>
+    <div class="card-body">
+        {% if logs %}
+        <div class="table-wrap">
+            <table class="data-table" id="logsTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Action</th>
+                        <th>Table</th>
+                        <th>Target ID</th>
+                        <th>Description</th>
+                        <th>Performed By</th>
+                        <th>Timestamp</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr class="log-row {% if log.id in tagged_ids %}tagged-evidence{% endif %}" data-id="{{ log.id }}">
+                        <td>{{ log.id }}</td>
+                        <td><span class="badge badge-{{ log.action_type | lower }}">{{ log.action_type }}</span></td>
+                        <td><code>{{ log.target_table or '—' }}</code></td>
+                        <td>{{ log.target_id or '—' }}</td>
+                        <td>{{ log.description or '—' }}</td>
+                        <td>{{ log.performed_by }}</td>
+                        <td class="mono-time">{{ log.logged_at }}</td>
+                        <td>
+                            {% if log.old_value or log.new_value %}
+                            <button class="btn-sm btn-info" data-index="{{ loop.index0 }}"
+                                onclick="showLogDetail(this)">View</button>
+                            <div id="log-data-{{ loop.index0 }}" data-old="{{ log.old_value | forceescape }}"
+                                data-new="{{ log.new_value | forceescape }}" style="display: none;"></div>
+                            {% else %}—{% endif %}
+                            
+                            <button class="btn-sm {% if log.id in tagged_ids %}btn-warning{% else %}btn-secondary{% endif %}" 
+                                onclick="toggleEvidence('{{ log.id }}', this)" style="margin-left: 5px;" title="Mark as Evidence">
+                                🔖
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-msg">No logs found{% if action_filter %} for action type <strong>{{ action_filter
+                }}</strong>{% endif %}. Trigger a scenario to generate logs.</div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Log Detail Modal -->
+<div class="modal-overlay" id="logModal" onclick="closeModal()">
+    <div class="modal-box" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <h3><svg class="icon" style="margin-right:8px;color:var(--blue);" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Log Entry Details</h3>
+            <button onclick="closeModal()" class="modal-close"><svg class="icon" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button>
+        </div>
+        <div class="modal-body">
+            <div class="detail-section">
+                <h4>Before (Old Value)</h4>
+                <pre id="oldValuePre" class="code-block">—</pre>
+            </div>
+            <div class="detail-section">
+                <h4>After (New Value)</h4>
+                <pre id="newValuePre" class="code-block">—</pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function showLogDetail(btn) {
+        const index = btn.getAttribute('data-index');
+        const dataEl = document.getElementById('log-data-' + index);
+        const oldVal = dataEl.getAttribute('data-old');
+        const newVal = dataEl.getAttribute('data-new');
+
+        try {
+            document.getElementById('oldValuePre').textContent = (oldVal && oldVal !== 'None') ? JSON.stringify(JSON.parse(oldVal), null, 2) : '— No previous value —';
+        } catch (e) {
+            document.getElementById('oldValuePre').textContent = oldVal;
+        }
+
+        try {
+            document.getElementById('newValuePre').textContent = (newVal && newVal !== 'None') ? JSON.stringify(JSON.parse(newVal), null, 2) : '— No new value —';
+        } catch (e) {
+            document.getElementById('newValuePre').textContent = newVal;
+        }
+
+        document.getElementById('logModal').classList.add('visible');
+    }
+    function closeModal() {
+        document.getElementById('logModal').classList.remove('visible');
+    }
+
+    function toggleEvidence(logId, btn) {
+        fetch('/api/evidence/toggle', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ log_id: logId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const tr = btn.closest('tr');
+            if (data.status === 'tagged') {
+                btn.classList.remove('btn-secondary');
+                btn.classList.add('btn-warning');
+                tr.classList.add('tagged-evidence');
+            } else if (data.status === 'untagged') {
+                btn.classList.remove('btn-warning');
+                btn.classList.add('btn-secondary');
+                tr.classList.remove('tagged-evidence');
+            }
+        });
+    }
+</script>
+{% endblock %}
