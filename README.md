@@ -11,7 +11,7 @@ A web-based educational tool designed to simulate the digital forensic data reco
 - **Case Reports:** Generate and export professional forensic reports based on your findings.
 
 ## Technologies Used
-- **Backend:** Python, Flask, SQLite
+- **Backend:** Python, Flask, MariaDB
 - **Frontend:** HTML, CSS, JavaScript (Vanilla)
 - **Version Control:** Git, GitHub
 
@@ -49,7 +49,7 @@ A web-based educational tool designed to simulate the digital forensic data reco
 ```
 forensic-simulator/
 ├── app.py              # Main Flask application file
-├── db/                 # Database schema and SQLite files
+├── db/                 # Database schema and MariaDB configuration
 ├── static/             # CSS styles and JavaScript files
 ├── templates/          # HTML templates for the frontend
 ├── requirements.txt    # Python dependencies
